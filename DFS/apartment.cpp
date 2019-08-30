@@ -90,8 +90,7 @@ void Get_Cnt_Group(void)
         }
     }
 }
- 
- 
+
 int main(void)
 {
     int i;
@@ -106,5 +105,6 @@ int main(void)
     {
         printf("%d\n",cnt_apt[i]);
     }
+
     return 0;
 }

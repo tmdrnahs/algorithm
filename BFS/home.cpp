@@ -20,130 +20,112 @@
 // 목적지 Z에서 BFS를 돌려서 각 대문자 농장에 도착하는 모든 경우의 수를 구한 후 가장 작은 값 
 // 각 노드간 여러 갈래의 길이 있을 때, 최단 거리를 구하는 문제 이므로 작은 값만 저장!! 중요!!
 // 목적지가 있을 떄, 목적지에서 출발지로 가는 식으로 거꾸로 생각하보자
+#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
-
-#define MAX_N (10000)
-#define MAX_M (58)
-#define MAX_Q (MAX_M*100)
-
-int P; // 길의 수
-
-int matrix[MAX_M][MAX_M];
-int queue[MAX_Q];
-int wp, rp;
-int chk[MAX_M];
-char cow[MAX_M];
-
-#define Enqueue(x) (queue[wp++] = (x))
-#define Dequeue(x) ((x) = queue[rp++])
-#define IsQueueEmpty (wp <= rp)
-
-int CtoI(char ch)
+ 
+#define MAX_NODE (52)
+ 
+int mat[MAX_NODE][MAX_NODE];
+int chk[MAX_NODE];
+ 
+#define MAX_Q (MAX_NODE * 100)
+ 
+typedef struct
 {
-    if ('a' <= ch && ch <='z') return ch - 'a';
-    else return ch -'A' + 26;
-}
-
-char ItoC(int num)
-{
-    if (0 <= num <= 25) return num + 'a';
-    else return num - 26 + 'A';
-}
-
-void InputData(void)
-{
-    char a;
-    char b;
+    int n;
     int dist;
-    scanf("%d", &P);
-    for (int i=0; i<P; i++)
+}QUEUE;
+ 
+QUEUE queue[MAX_Q];
+int wp, rp;
+ 
+#define Enqueue(X) (queue[wp++] = (X))
+#define Dequeue(X) ((X) = queue[rp++])
+#define QueueIsNotEmpty (wp > rp)
+ 
+ 
+int Char_to_Num(char ch)
+{
+    if('a'<=ch && ch<='z') return ch-'a';
+    else return ch-'A' + 26;
+}
+ 
+char Num_to_Char(int num)
+{
+    if(0<=num && num<=25) return num+'a';
+    else return num-26+'A';
+}
+ 
+void Input_Data(void)
+{
+    int P;
+    int p;
+    char ch1,ch2;
+    int n1,n2;
+    int dist;
+ 
+    scanf("%d",&P);
+    for(p=0;p<P;p++)
     {
-        scanf(" %c %c %d", &a, &b, &dist);
-
-        if (dist < matrix[CtoI(a)][CtoI(b)] || dist < matrix[CtoI(b)][CtoI(a)])
+        scanf(" %c %c %d",&ch1,&ch2,&dist);
+        n1 = Char_to_Num(ch1);
+        n2 = Char_to_Num(ch2);
+        if(mat[n1][n2] == 0 || (mat[n1][n2] > dist))
         {
-            matrix[CtoI(a)][CtoI(b)] = dist;
-            matrix[CtoI(b)][CtoI(a)] = dist;
+            mat[n1][n2] = mat[n2][n1] = dist;
         }
     }
+ 
+    for(p=0;p<MAX_NODE;p++) chk[p] = 0x7fffffff;
 }
-
-void PrintData(void)
+ 
+int BFS(void)
 {
-    for (int i=0; i<MAX_M; i++)
+    int min_dist_node;
+    QUEUE data,ndata;
+    int n;
+ 
+    data.n = Char_to_Num('Z');
+    data.dist = 0;
+    Enqueue(data);
+    chk[data.n] = 0;
+ 
+    while(QueueIsNotEmpty)
     {
-        printf("%c ", cow[i]);
-    }
-    printf("\n");
-}
-
-void InitBSP(void)
-{
-    wp = rp = 0;
-    for (int i=0; i<MAX_M; i++)
-        chk[i] = 0x7fffffff;
-
-    for (int j=0; j<MAX_M; j++)
-    {
-        cow[j] = ItoC(j);
-    }
-}
-
-int BSP(int start)
-{
-    int current;
-    Enqueue(start);
-    chk[start] = 0;
-
-    while (!IsQueueEmpty)
-    {
-        Dequeue(current);
-
-        for (int next=0; next<MAX_M; next++)
+        Dequeue(data);
+        if(data.dist != chk[data.n]) continue;
+ 
+        for(n=0;n<MAX_NODE;n++)
         {
-            if (matrix[current][next] == 0) continue;
-            if (chk[next] <= chk[current] + matrix[current][next]) continue;
-            
-            Enqueue(next);
-            chk[next] = chk[current] + matrix[current][next];
-            //cow[next] = ItoA(start);
+            ndata.n = n;
+            if(mat[data.n][ndata.n] == 0) continue;
+            ndata.dist = data.dist + mat[data.n][ndata.n];
+ 
+            if(chk[ndata.n] <= ndata.dist) continue;
+ 
+            Enqueue(ndata);
+            chk[ndata.n] = ndata.dist;
         }
     }
-
-    return chk[BARN];
-}
-
-int GetSolution(void)
-{
-    int sol = 0x7fffffff;
-    char cow;
-    int ret;
-
-    for (int i=0; i<MAX_M; i++)
+     
+    min_dist_node = 26;
+    for(n = 27;n<=50;n++)
     {
-        if (ItoC(i) == 'Z')
-            break;
-
-        InitBSP();
-        // PrintData();
-        ret = BSP(i);
-        //printf("%c ret: %d\n", ItoA(i), ret);
-        if (sol > ret)
-        {
-            cow = ItoC(i);
-            sol = ret;
-        }
+        if(chk[min_dist_node] > chk[n]) min_dist_node = n;
     }
-
-    printf("%c ", cow);
-    return sol;
+    return min_dist_node;
 }
-
+ 
+ 
+ 
 int main(void)
 {
-    InputData();
-    int ret = GetSolution();
-    printf("%d", ret);
-    
+    int node=0; 
+    Input_Data();
+ 
+    node = BFS();
+ 
+    printf("%c %d\n",Num_to_Char(node),chk[node]);
+ 
     return 0;
 }
